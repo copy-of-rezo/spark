@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.api.records._
 import org.apache.hadoop.yarn.client.api.{YarnClient, YarnClientApplication}
 import org.apache.hadoop.yarn.conf.YarnConfiguration
 import org.apache.hadoop.yarn.util.Records
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus
 
 import org.apache.spark.{Logging, SparkConf}
 import org.apache.spark.deploy.SparkHadoopUtil
@@ -137,13 +138,23 @@ object Client {
 
     try {
       val args = new ClientArguments(argStrings, sparkConf)
-      new Client(args, sparkConf).run()
+      val client = new Client(args, sparkConf)
+      val appId = client.run()
+
+      val report = client.getApplicationReport(appId)
+      val appStatus = report.getFinalApplicationStatus
+
+      val exitStatus = appStatus match {
+        case FinalApplicationStatus.SUCCEEDED => 0
+        case _ => 1
+      }
+
+      System.exit(exitStatus)
+
     } catch {
       case e: Exception =>
         Console.err.println(e.getMessage)
         System.exit(1)
     }
-
-    System.exit(0)
   }
 }
