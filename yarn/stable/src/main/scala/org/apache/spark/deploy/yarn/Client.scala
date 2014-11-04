@@ -144,12 +144,8 @@ object Client {
       val report = client.getApplicationReport(appId)
       val appStatus = report.getFinalApplicationStatus
 
-      val exitStatus = appStatus match {
-        case FinalApplicationStatus.SUCCEEDED => 0
-        case _ => 1
-      }
-
-      System.exit(exitStatus)
+      if(appStatus != FinalApplicationStatus.SUCCEEDED) System.exit(1)
+      System.exit(0)
 
     } catch {
       case e: Exception =>
